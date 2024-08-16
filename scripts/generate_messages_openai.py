@@ -48,7 +48,7 @@ for index, row in posts_df.iterrows():
     post_content = row['body']
     sentiment = row['sentiment_category']  # Use the pre-segmented interest level
     message = generate_personalized_message(post_content, author_name, sentiment, context="post")
-    post_messages.append([author_name, post_content, sentiment, message])
+    post_messages.append([author_name, sentiment, message])
 
 # Generate messages for comments with combined post and comment content
 comment_messages = []
@@ -60,11 +60,11 @@ for index, row in comments_df.iterrows():
     combined_content = f"Post: {post_content}\nComment: {comment_content}"  
     sentiment = row['sentiment_category'] 
     message = generate_personalized_message(combined_content, author_name, sentiment, context="comment")
-    comment_messages.append([author_name, combined_content, sentiment, message])
+    comment_messages.append([author_name, sentiment, message])
 
 # Save the messages to a CSV file
 def save_messages_to_csv(messages, filename='data/personalized_messages.csv'):
-    messages_df = pd.DataFrame(messages, columns=['author', 'content', 'interest_level', 'personalized_message'])
+    messages_df = pd.DataFrame(messages, columns=['author', 'sentiment_category', 'personalized_message'])
     messages_df.to_csv(filename, index=False)
     print(f"Messages saved to {filename}")
 
