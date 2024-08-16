@@ -9,7 +9,14 @@ load_dotenv()
 # Set OpenAI API key
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Function to generate personalized messages using Groq
+
+# Load the sentiment-analyzed data
+posts_df = pd.read_csv('data/reddit_posts_with_sentiment.csv')
+comments_df = pd.read_csv('data/reddit_comments_with_sentiment.csv')
+
+link = "https://forms.gle/sTM2a6LyNtmyjAw77"
+
+# Function to generate personalized messages using OpenAI
 def generate_personalized_message(content, author_name, sentiment, context="post"):
     if sentiment == "positive":
         prompt = f"Write a personalized message of maximum 100 words to the Reddit user named {author_name} who has shown high interest in clinical trials shown through a {context}. Here is the context that you can use to make it personalizable: {content}. End it with redirecting them to a google form: {link}. In the response you generate, Just generate the final message without any additional information before or after the message. Just the message without here it is or anything else, just the message"
@@ -32,35 +39,6 @@ def generate_personalized_message(content, author_name, sentiment, context="post
     message = response['choices'][0]['message']['content'].strip()
     return message
 
-# Load the sentiment-analyzed data
-posts_df = pd.read_csv('data/reddit_posts_with_sentiment.csv')
-comments_df = pd.read_csv('data/reddit_comments_with_sentiment.csv')
-
-link = "https://forms.gle/sTM2a6LyNtmyjAw77"
-
-def generate_personalized_message(content, author_name, interest_level, context="post"):
-    if interest_level == "positive":
-        prompt = f"Write a personalized message of maximum 100 words to the Reddit user named {author_name} who has shown high interest in clinical trials shown through a {context}. Here is the context that you can use to make it personalizable: {content}. End it with redirecting them to a google form which I will add at the end of the message: {link}. Just give me the message without any additional information before or after the message, I will just copy and past this to their chat."
-
-    elif interest_level == "low interest":
-        prompt = f"Write a personalized message of maximum 100 words to the Reddit user named {author_name} who has shown low interest in clinical trials shown through a {context}. Here is the context that you can use to make it personalizable: {content}. End it with redirecting them to a google form which I will add at the end of the message: {link}. Just give me the message without any additional information before or after the message, I will just copy and past this to their chat."
-
-    else:
-        prompt = f"Write a personalized message of maximum 100 words to the Reddit user named {author_name} who has shown concern in clinical trials shown through a {context}. Here is the context that you can use to make it personalizable: {content}. End it with redirecting them to a google form which I will add at the end of the message: {link}. Just give me the message without any additional information before or after the message, I will just copy and past this to their chat."
-
-
-    response = client.chat.completions.create(
-        messages=[
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
-        model="llama3-8b-8192",
-    )
-
-    message = response.choices[0].message.content.strip()
-    return message
 
 
 # Generate messages for posts
@@ -68,21 +46,21 @@ post_messages = []
 for index, row in posts_df.iterrows():
     author_name = row['author']
     post_content = row['body']
-    interest_level = row['sentiment_category']  # Use the pre-segmented interest level
-    message = generate_personalized_message(post_content, author_name, interest_level, context="post")
-    post_messages.append([author_name, post_content, interest_level, message])
+    sentiment = row['sentiment_category']  # Use the pre-segmented interest level
+    message = generate_personalized_message(post_content, author_name, sentiment, context="post")
+    post_messages.append([author_name, post_content, sentiment, message])
 
 # Generate messages for comments with combined post and comment content
 comment_messages = []
 for index, row in comments_df.iterrows():
     author_name = row['author']
     comment_content = row['body']
-    post_id = row['post_id']  # Assuming you have a post_id column linking comments to posts
-    post_content = posts_df.loc[posts_df['id'] == post_id, 'body'].values[0]  # Get the original post content
-    combined_content = f"Post: {post_content}\nComment: {comment_content}"  # Combine post and comment content
-    interest_level = row['sentiment_category']  # Use the pre-segmented interest level
-    message = generate_personalized_message(combined_content, author_name, interest_level, context="comment")
-    comment_messages.append([author_name, combined_content, interest_level, message])
+    post_id = row['post_id']  
+    post_content = posts_df.loc[posts_df['id'] == post_id, 'body'].values[0]  
+    combined_content = f"Post: {post_content}\nComment: {comment_content}"  
+    sentiment = row['sentiment_category'] 
+    message = generate_personalized_message(combined_content, author_name, sentiment, context="comment")
+    comment_messages.append([author_name, combined_content, sentiment, message])
 
 # Save the messages to a CSV file
 def save_messages_to_csv(messages, filename='data/personalized_messages.csv'):

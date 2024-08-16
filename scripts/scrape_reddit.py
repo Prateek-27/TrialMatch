@@ -18,12 +18,13 @@ reddit = praw.Reddit(
     user_agent=reddit_user_agent
 )
 
-# Function to read subreddits from input.txt
+# Function to read subreddits for text file
 def get_subreddits_from_file(filename='subreddits.txt'):
     with open(filename, 'r') as file:
         subreddits = [line.strip() for line in file.readlines()]
     return subreddits
 
+# Function to read keywords for text file
 def get_keywords_from_file(filename='keywords.txt'):
     with open(filename, 'r') as file:
         subreddits = [line.strip() for line in file.readlines()]
@@ -79,6 +80,7 @@ def scrape_comments(post_ids, limit=100):
             comments_data.append(comment_data)
     return comments_data
 
+# Function to save scaped data into a csv file
 def save_to_csv(data, filename):
     # Convert data to a Pandas DataFrame
     df = pd.DataFrame(data)

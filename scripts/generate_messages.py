@@ -12,29 +12,15 @@ client = Groq(
     api_key=os.getenv("GROQ_API_KEY"),
 )
 
-# Function to generate personalized messages using Groq
-def generate_personalized_message(content, author_name, sentiment, context="post"):
-    prompt = f"Write a {sentiment} and informative message to a Reddit user named {author_name} who is interested in clinical trials. Their {context} was: \"{content}\". The message should encourage them to learn more about participating in clinical trials."
-
-    chat_completion = client.chat.completions.create(
-        messages=[
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
-        model="llama3-8b-8192",
-    )
-
-    message = chat_completion.choices[0].message.content.strip()
-    return message
 
 # Load the sentiment-analyzed data
 posts_df = pd.read_csv('data/reddit_posts_with_sentiment.csv')
 comments_df = pd.read_csv('data/reddit_comments_with_sentiment.csv')
 
+# Link to google form which the user will be directed to
 link = "https://forms.gle/sTM2a6LyNtmyjAw77"
 
+# Function to generate personalized messages using Groq
 def generate_personalized_message(content, author_name, sentiment, context="post"):
     if sentiment == "positive":
         prompt = f"Write a personalized message of maximum 100 words to the Reddit user named {author_name} who has shown high interest in clinical trials shown through a {context}. Here is the context that you can use to make it personalizable: {content}. End it with redirecting them to a google form: {link}. In the response you generate, Just generate the final message without any additional information before or after the message. Just the message without here it is or anything else, just the message"
@@ -45,7 +31,7 @@ def generate_personalized_message(content, author_name, sentiment, context="post
     else:
         prompt = f"Write a personalized message of maximum 100 words to the Reddit user named {author_name} who has shown concern in clinical trials shown through a {context}. Here is the context that you can use to make it personalizable: {content}. End it with redirecting them to a google form: {link}. In the response you generate, Just generate the final message without any additional information before or after the message. Just the message without here it is or anything else, just the message"
 
-
+    # Using llama3 model to generate message
     response = client.chat.completions.create(
         messages=[
             {
@@ -74,10 +60,10 @@ comment_messages = []
 for index, row in comments_df.iterrows():
     author_name = row['author']
     comment_content = row['body']
-    post_id = row['post_id']  # Assuming you have a post_id column linking comments to posts
-    post_content = posts_df.loc[posts_df['id'] == post_id, 'body'].values[0]  # Get the original post content
-    combined_content = f"Post: {post_content}\nComment: {comment_content}"  # Combine post and comment content
-    sentiment = row['sentiment_category']  # Use the pre-segmented interest level
+    post_id = row['post_id']  
+    post_content = posts_df.loc[posts_df['id'] == post_id, 'body'].values[0]  
+    combined_content = f"Post: {post_content}\nComment: {comment_content}"  
+    sentiment = row['sentiment_category'] 
     message = generate_personalized_message(combined_content, author_name, sentiment, context="comment")
     comment_messages.append([author_name, combined_content, sentiment, message])
 

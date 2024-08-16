@@ -18,6 +18,7 @@ reddit = praw.Reddit(
 
 messages_df = pd.read_csv('data/personalized_messages.csv')
 
+# Function to send the message to user
 def send_message(username, message_content):
     try:
         reddit.redditor(username).message(subject='Regarding Clinical Trials', message=message_content)
@@ -27,6 +28,7 @@ def send_message(username, message_content):
     except Exception as e:
         print(f"Failed to send message to {username}: {e}")
 
+# Sending message to each user
 for index, row in messages_df.iterrows():
     username = row['author']
     message_content = row['personalized_message']
