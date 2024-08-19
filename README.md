@@ -132,7 +132,7 @@ The objective of TrialMatch is to ethically scrape and analyze web data, utilize
    - The project focused on analyzing publicly available data without intruding on users' privacy. No PII, such as names or email addresses, was collected or used.
 
 3. **Demonstration and Consent**
-   - The project emphasized the generation of personalized messages as a demonstration of capability. The actual sending of messages was conducted in a controlled manner, and the approach respects the need for user consent before any real-world application.
+   - The project emphasized the sending of personalized messages as a demonstration of capability. The actual sending of messages was conducted in a controlled manner, and the approach respects the need for user consent before any real-world application.
 
 ---
 
